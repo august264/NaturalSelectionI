@@ -47,12 +47,5 @@ public:
 	float GetDmg();
 	float GetDef();
 	float GetVision();
-
-
-	UPROPERTY(EditAnywhere)
-		UStaticMeshComponent* VisibleComponent;
-
-
-	
 	
 };
