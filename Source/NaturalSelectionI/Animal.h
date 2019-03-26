@@ -41,7 +41,7 @@ public:
 
 
 	// Acceessors below
-	float GetHealth();
+	float GetHealth(); 
 	float GetSpeed();
 	float GetSize();
 	float GetDmg();

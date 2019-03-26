@@ -32,6 +32,8 @@ void AAnimal::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
+// ==================================================== Set Functions are defined below ====================================================
+
 void AAnimal::SetHealth(float health)
 {
 	this->Health = health;
@@ -60,6 +62,36 @@ void AAnimal::SetDef(float def)
 void AAnimal::SetVision(float vision)
 {
 	this->Vision = vision;
+}
+
+float AAnimal::GetHealth()
+{
+	return this->Health;
+}
+
+float AAnimal::GetSpeed()
+{
+	return this->Speed;
+}
+
+float AAnimal::GetSize()
+{
+	return this->Size;
+}
+
+float AAnimal::GetDmg()
+{
+	return this->Dmg;
+}
+
+float AAnimal::GetDef()
+{
+	return this->Def;
+}
+
+float AAnimal::GetVision()
+{
+	return this->Vision;
 }
 
 
