@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Animal.h"
+#include "Food.h"
+#include "StateMachine.h"
 #include "Gatherer.generated.h"
 
 /**
@@ -15,6 +17,15 @@ class NATURALSELECTIONI_API AGatherer : public AAnimal
 	GENERATED_BODY()
 
 public:
+
+	// Set the states for FSM
+	enum Gatherer_States {
+		WANDER_STATE,
+		EAT_STATE,
+		ATTACK_STATE
+
+	};
+
 	AGatherer();
 	
 public:
@@ -22,6 +33,23 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
+
+	StateMachine<Gatherer_States, AGatherer>* m_StateMachine;
+
+	void State_Wander_OnEnter(void);
+	void State_Wander_OnTick(float f_DeltaTime);
+	void State_Wander_OnExit(void);
+
+	void State_Eat_OnEnter(void);
+	void State_Eat_OnTick(float f_DeltaTime);
+	void State_Eat_OnExit(void);
+
+	void State_Attack_OnEnter(void);
+	void State_Attack_OnTick(float f_DeltaTime);
+	void State_Attack_OnExit(void);
+
+	float m_timeElapse = 0.0f;
+
 	float Happiness = 0.0f;
 
 
@@ -38,4 +66,10 @@ public:
 	void Wandering(float speed, float DeltaTime);
 	void SpawnChild();
 	float GetHappiness();
+	void FindandEat(float speed, float DeltaTime);
+
+
+	Gatherer_States GetCurrState() { return m_StateMachine->GetCurrentState(); }
+	void SetCurrState(Gatherer_States state) { m_StateMachine->ChangeState(state); }
+
 };

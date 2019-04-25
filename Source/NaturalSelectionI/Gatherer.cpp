@@ -30,7 +30,17 @@ AGatherer::AGatherer() {
 	
 	SetSpeed(400.0f);
 	SetHealth(100.0f);
-	//SetRandomTarget();
+	SetRandomTarget();
+
+
+	// StateMachine setup and register
+	m_StateMachine = new StateMachine<Gatherer_States, AGatherer>(this, WANDER_STATE);
+
+	m_StateMachine->RegisterState(WANDER_STATE, &AGatherer::State_Wander_OnEnter, &AGatherer::State_Wander_OnTick, &AGatherer::State_Wander_OnExit);
+	m_StateMachine->RegisterState(EAT_STATE, &AGatherer::State_Eat_OnEnter, &AGatherer::State_Eat_OnTick, &AGatherer::State_Eat_OnExit);
+	m_StateMachine->RegisterState(ATTACK_STATE, &AGatherer::State_Attack_OnEnter, &AGatherer::State_Attack_OnTick, &AGatherer::State_Attack_OnExit);
+	
+	m_StateMachine->ChangeState(WANDER_STATE);
 	
 	
 }
@@ -39,14 +49,17 @@ void AGatherer::Tick(float DeltaTime)
 {
 	//Super::Tick(DeltaTime);
 
-	Wandering(GetSpeed(), DeltaTime);
-	if (this->GetHappiness() >= 100.0f) {
-		//SpawnChild();
-	
-	}
+	//Wandering(GetSpeed(), DeltaTime);
+	//if (this->GetHappiness() >= 100.0f) {
+	//	SpawnChild();
+    //	
+	//}
+
+	m_StateMachine->Tick(DeltaTime);
 	
 
 }
+
 
 void AGatherer::SetHappiness(float happy)
 {
@@ -58,9 +71,6 @@ void AGatherer::SetRandomTarget()
 	targetLocation.X = FMath::FRandRange(0, 3800);
 	targetLocation.Y = FMath::FRandRange(0, 3800);
 	targetLocation.Z = FMath::FRandRange(0,0);
-	
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("My Happiness: %f"), this->GetHappiness()));
-
 }
 
 void AGatherer::Wandering(float speed, float DeltaTime)
@@ -68,13 +78,15 @@ void AGatherer::Wandering(float speed, float DeltaTime)
 	position = this->GetActorLocation();
 	
 	SetActorLocation(FMath::VInterpConstantTo(position, targetLocation, DeltaTime, GetSpeed()));
-	if (FVector::Dist(position, targetLocation) < 200.0f)
+	if (FVector::Dist(position, targetLocation) < 100.0f)
 	{
-		SetRandomTarget();
-				
+		SetRandomTarget();				
 	}
 }
 
+
+
+// Spawn an actor
 void AGatherer::SpawnChild()
 {
 	
@@ -83,14 +95,95 @@ void AGatherer::SpawnChild()
 	AGatherer* Child = GetWorld()->SpawnActor<AGatherer>(GetClass(), BirthLocation, FRotator::ZeroRotator);
 
 	// clear the happiness
-	this->SetHappiness(-100);
-
-	
+	this->SetHappiness(-100.0f);	
 }
 
 float AGatherer::GetHappiness()
 {
 	return Happiness;
 }
+
+void AGatherer::FindandEat(float speed, float DeltaTime)
+{
+	TArray<FHitResult> OutHits;
+	FVector Location = GetActorLocation();
+
+	// Gatherer sight is 300.0f/ 30m
+	FCollisionShape Sphere = FCollisionShape::MakeSphere(300.0f);
+
+	bool isHit = GetWorld()->SweepMultiByChannel(OutHits, Location, Location, FQuat::Identity, ECC_WorldStatic, Sphere);
+	if (isHit) {
+		for (auto& Hit : OutHits) {
+			AFood* food = Cast<AFood>(Hit.GetActor());
+			if (food) {
+				FVector toFood = food->GetActorLocation();
+				SetActorLocation(FMath::VInterpConstantTo(GetActorLocation(), toFood, DeltaTime, GetSpeed()));
+				break;
+			}
+		}
+	}
+}
+
+
+// FSM functions are implemented below
+void AGatherer::State_Wander_OnEnter(void)
+{
+}
+
+void AGatherer::State_Wander_OnTick(float f_DeltaTime)
+{
+	Wandering(GetSpeed(),f_DeltaTime);
+
+	TArray<FHitResult> OutHits;
+	FVector Location = GetActorLocation();
+
+	// Gatherer sight is 300.0f/ 30m
+	FCollisionShape Sphere = FCollisionShape::MakeSphere(300.0f);
+
+	bool isHit = GetWorld()->SweepMultiByChannel(OutHits, Location, Location, FQuat::Identity, ECC_WorldStatic, Sphere);
+	if (isHit) {
+		
+
+		for (auto& Hit : OutHits) {
+			if (Hit.GetActor()->IsA(AFood::StaticClass())) {
+				
+				m_StateMachine->ChangeState(EAT_STATE);
+				break;
+			}
+		}
+	}
+}
+
+void AGatherer::State_Wander_OnExit(void)
+{
+}
+
+void AGatherer::State_Eat_OnEnter(void)
+{
+}
+
+void AGatherer::State_Eat_OnTick(float f_DeltaTime)
+{
+	FindandEat(GetSpeed(), f_DeltaTime);
+	m_StateMachine->ChangeState(WANDER_STATE);
+
+}
+
+void AGatherer::State_Eat_OnExit(void)
+{
+}
+
+void AGatherer::State_Attack_OnEnter(void)
+{
+}
+
+void AGatherer::State_Attack_OnTick(float f_DeltaTime)
+{
+}
+
+void AGatherer::State_Attack_OnExit(void)
+{
+}
+
 
 

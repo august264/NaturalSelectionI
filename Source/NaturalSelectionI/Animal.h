@@ -20,6 +20,7 @@ public:
 private:
 	float Health, Speed, Size, Dmg, Def, Vision;
 
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -31,14 +32,13 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-
+	
 	void SetHealth(float health);
 	void SetSpeed(float speed);
 	void SetSize(float size);
 	void SetDmg(float dmg);
 	void SetDef(float def);
 	void SetVision(float vision);
-
 
 	// Acceessors below
 	float GetHealth(); 
@@ -47,5 +47,4 @@ public:
 	float GetDmg();
 	float GetDef();
 	float GetVision();
-	
 };

@@ -49,8 +49,9 @@ void AFood::OnPlayerEnterPickupBox(UPrimitiveComponent * OverlappedComp, AActor 
 		AGatherer* aOtherActor = Cast<AGatherer>(OtherActor);
 
 		// Add 20 happiness to the Gatherer
-		//aOtherActor->SetHappiness(20);
+		aOtherActor->SetHappiness(20);
 		Destroy();
+		
 
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("Moo See It, Moo Eat It, Moo Happy is")));
 	}
