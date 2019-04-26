@@ -2,7 +2,6 @@
 
 #include "Gatherer.h"
 #include <vector>
-#include "Hunter.h"
 #include "Engine/GameEngine.h"
 #include "Components/InputComponent.h"
 #include "ConstructorHelpers.h"
@@ -31,6 +30,7 @@ AGatherer::AGatherer() {
 	myMesh->SetStaticMesh(myStaticMesh.Object);
 
 	// Set the basic property for Gatherer
+	SetDmg(20.0f);
 	SetSpeed(400.0f);
 	SetHealth(100.0f);
 	SetRandomTarget();
@@ -102,6 +102,21 @@ float AGatherer::GetHappiness()
 {
 	return Happiness;
 }
+
+void AGatherer::CauseDMG(AAnimal* animal)
+{
+	if (AHunter* hunter = Cast<AHunter>(animal)) {
+		float myDmg = this->GetDmg();
+		float newHealth = hunter->GetHealth() - myDmg;
+		hunter->SetHealth(newHealth);
+	}
+}
+
+
+
+
+
+
 
 
 // FSM functions are implemented below
@@ -191,18 +206,16 @@ void AGatherer::State_Eat_OnTick(float f_DeltaTime)
 		foodNum = foodList.size();
 		if (foodNum > 0) {
 			foodLocation = foodList[0]->GetActorLocation();
+			SetActorLocation(FMath::VInterpConstantTo(this->GetActorLocation(), foodLocation, f_DeltaTime, GetSpeed()));
 		}
+		else {
+			// Sadly there is no food around
+			m_StateMachine->ChangeState(WANDER_STATE);
+		
+		}
+
 	}
 	
-	// Double check if there is/are food nearby
-	if (foodNum > 0) {
-		SetActorLocation(FMath::VInterpConstantTo(this->GetActorLocation(), foodLocation, f_DeltaTime, GetSpeed()));
-		
-	}	
-	else {
-		// Sadly there is no food around
-		m_StateMachine->ChangeState(WANDER_STATE);	
-	}
 }
 
 void AGatherer::State_Eat_OnExit(void)
@@ -217,10 +230,28 @@ void AGatherer::State_Attack_OnTick(float f_DeltaTime)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Attacking")));
 
+	TArray<FHitResult> OutHits;
+	FVector Location = GetActorLocation();
+	FCollisionShape Sphere = FCollisionShape::MakeSphere(500.0f);
+	bool isHit = GetWorld()->SweepMultiByChannel(OutHits, Location, Location, FQuat::Identity, ECC_WorldStatic, Sphere);
 
-
+	if (isHit) {
+		std::vector<AHunter*> HunterList;
+		for (auto& Hit : OutHits) {
+			if (AHunter* Hunter = Cast<AHunter>(Hit.GetActor())) {
+				HunterList.push_back(Hunter);
+			}		
+		}
+		if (HunterList.size() > 0) {
+			if (HunterList[0]->GetHealth() > 0) {
+				CauseDMG(HunterList[0]);			
+			}
+		
+		}
+	}
 }
 
 void AGatherer::State_Attack_OnExit(void)
 {
 }
+

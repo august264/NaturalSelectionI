@@ -6,6 +6,7 @@
 #include "Animal.h"
 #include <vector>
 #include "Food.h"
+#include "Hunter.h"
 #include "StateMachine.h"
 #include "Gatherer.generated.h"
 
@@ -71,5 +72,7 @@ public:
 
 	Gatherer_States GetCurrState() { return m_StateMachine->GetCurrentState(); }
 	void SetCurrState(Gatherer_States state) { m_StateMachine->ChangeState(state); }
+
+	void CauseDMG(AAnimal* hunter);
 
 };

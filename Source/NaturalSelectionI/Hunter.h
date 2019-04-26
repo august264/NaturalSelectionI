@@ -66,8 +66,8 @@ public:
 	void Wandering(float speed, float DeltaTime);
 	void SpawnChild();
 	void Chase();
-	void DealDMG(AAnimal*);
-
+	void DealDMG(AAnimal* Animal);
+	 
 	Hunter_States GetCurrState() { return m_StateMachine->GetCurrentState(); }
 	void SetCurrState(Hunter_States state) { m_StateMachine->ChangeState(state); }
 	

@@ -27,7 +27,7 @@ AHunter::AHunter() {
 	myMesh->SetStaticMesh(myStaticMesh.Object);
 
 	Kills = 0;
-	SetDmg(25.0f);
+	SetDmg(50.0f);
 	SetSpeed(700.0f);
 	SetHealth(100.0f);
 	SetRandomTarget();
@@ -47,10 +47,17 @@ void AHunter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	m_StateMachine->Tick(DeltaTime);
 
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("HP: %f"), GetHealth()));
+
+
 	if (this->Kills >= 2) {
 		SpawnChild();
 	}
 
+	if (this->GetHealth() <= 0) {
+		Destroy();	
+	}
 }
 
 void AHunter::State_Wander_OnEnter(void)
