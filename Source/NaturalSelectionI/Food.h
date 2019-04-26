@@ -26,6 +26,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	float checkFood();
+
 
 	UPROPERTY(EditAnywhere)
 		USceneComponent* PickupRoot;

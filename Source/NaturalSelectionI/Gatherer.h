@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animal.h"
+#include <vector>
 #include "Food.h"
 #include "StateMachine.h"
 #include "Gatherer.generated.h"
@@ -20,6 +21,7 @@ public:
 
 	// Set the states for FSM
 	enum Gatherer_States {
+		DO_NOTHING_STATE = 0,
 		WANDER_STATE,
 		EAT_STATE,
 		ATTACK_STATE
@@ -66,7 +68,7 @@ public:
 	void Wandering(float speed, float DeltaTime);
 	void SpawnChild();
 	float GetHappiness();
-	void FindandEat(float speed, float DeltaTime);
+	
 
 
 	Gatherer_States GetCurrState() { return m_StateMachine->GetCurrentState(); }
