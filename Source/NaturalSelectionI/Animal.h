@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include <time.h>
 #include "GameFramework/Pawn.h"
 #include "Animal.generated.h"
 

@@ -2,6 +2,7 @@
 
 #include "Gatherer.h"
 #include <vector>
+#include "Hunter.h"
 #include "Engine/GameEngine.h"
 #include "Components/InputComponent.h"
 #include "ConstructorHelpers.h"
@@ -51,11 +52,15 @@ void AGatherer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	m_StateMachine->Tick(DeltaTime);
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("Happy: %f"), GetHappiness()));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("HP: %f"), GetHealth()));
 
 	if (GetHappiness() >= 100) {
 		SpawnChild();	
 	}
+	if (GetHealth() <= 0) {
+		Destroy();	
+	}
+
 }
 
 
@@ -108,6 +113,8 @@ void AGatherer::State_Wander_OnTick(float f_DeltaTime)
 {
 	Wandering(GetSpeed(), f_DeltaTime);
 
+	int HunterNum;
+	FVector HunterLocation;
 	bool changeFlag = false;
 	TArray<FHitResult> OutHits;
 	FVector Location = GetActorLocation();
@@ -124,12 +131,31 @@ void AGatherer::State_Wander_OnTick(float f_DeltaTime)
 				break;			
 			}			
 		}
+
+		std::vector<AHunter*> HunterList;
+		for (auto& Hit : OutHits) {
+			if (AHunter* Hunter = Cast<AHunter>(Hit.GetActor())) {
+				HunterList.push_back(Hunter);
+			}		
+		}
+		HunterNum = HunterList.size();
+		if (HunterNum > 0) {
+			HunterLocation = HunterList[0]->GetActorLocation();		
+			if (FVector::Dist(this->GetActorLocation(), HunterLocation) < 100.0f) {
+				m_StateMachine->ChangeState(ATTACK_STATE);
+			}
+			else
+			{
+				m_StateMachine->ChangeState(WANDER_STATE);
+			}
+
+		}
 	}
 	// if there is/are food nearby, change the state.
 	if (changeFlag == true) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("Going to eat")));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("Going to eat")));
 		m_StateMachine->ChangeState(EAT_STATE);
-	}
+	}	
 }
 
 void AGatherer::State_Wander_OnExit(void)
@@ -142,7 +168,7 @@ void AGatherer::State_Eat_OnEnter(void)
 
 void AGatherer::State_Eat_OnTick(float f_DeltaTime)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("Eating")));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("Eating")));
 
 	// While in the Eat State, it needs to eat one of the food not all of them.
 	// The food found nearby will be stored in the foodList, but only one will be used.
@@ -175,8 +201,7 @@ void AGatherer::State_Eat_OnTick(float f_DeltaTime)
 	}	
 	else {
 		// Sadly there is no food around
-		m_StateMachine->ChangeState(WANDER_STATE);
-	
+		m_StateMachine->ChangeState(WANDER_STATE);	
 	}
 }
 
@@ -190,6 +215,10 @@ void AGatherer::State_Attack_OnEnter(void)
 
 void AGatherer::State_Attack_OnTick(float f_DeltaTime)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Attacking")));
+
+
+
 }
 
 void AGatherer::State_Attack_OnExit(void)
