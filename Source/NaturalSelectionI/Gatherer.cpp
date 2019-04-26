@@ -52,6 +52,10 @@ void AGatherer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	m_StateMachine->Tick(DeltaTime);
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("Happy: %f"), GetHappiness()));
+
+	if (GetHappiness() >= 100) {
+		SpawnChild();	
+	}
 }
 
 
@@ -145,6 +149,7 @@ void AGatherer::State_Eat_OnTick(float f_DeltaTime)
 	// The food found nearby will be stored in the foodList, but only one will be used.
 	
 	int foodNum;
+	
 	FVector foodLocation;
 	TArray<FHitResult> OutHits;
 	FVector Location = GetActorLocation();
@@ -167,7 +172,13 @@ void AGatherer::State_Eat_OnTick(float f_DeltaTime)
 	// Double check if there is/are food nearby
 	if (foodNum > 0) {
 		SetActorLocation(FMath::VInterpConstantTo(this->GetActorLocation(), foodLocation, f_DeltaTime, GetSpeed()));
+		
 	}	
+	else {
+		// Sadly there is no food around
+		m_StateMachine->ChangeState(WANDER_STATE);
+	
+	}
 }
 
 void AGatherer::State_Eat_OnExit(void)
