@@ -4,77 +4,67 @@
 
 #include "CoreMinimal.h"
 #include "Animal.h"
-#include <vector>
-#include "Food.h"
+#include "Gatherer.h"
 #include "Hunter.h"
 #include "StateMachine.h"
-#include "Gatherer.generated.h"
+#include "Hider.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class NATURALSELECTIONI_API AGatherer : public AAnimal
+class NATURALSELECTIONI_API AHider : public AAnimal
 {
 	GENERATED_BODY()
 
 public:
-
-	// Set the states for FSM
-	enum Gatherer_States {
+	enum Hider_States {
 		DO_NOTHING_STATE = 0,
 		WANDER_STATE,
-		EAT_STATE,
+		FLEE_STATE,
 		ATTACK_STATE
 
 	};
 
-	AGatherer();
-	
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	AHider();
 
 private:
-
-	StateMachine<Gatherer_States, AGatherer>* m_StateMachine;
+	StateMachine<Hider_States, AHider>* m_StateMachine;
 
 	void State_Wander_OnEnter(void);
 	void State_Wander_OnTick(float f_DeltaTime);
 	void State_Wander_OnExit(void);
 
-	void State_Eat_OnEnter(void);
-	void State_Eat_OnTick(float f_DeltaTime);
-	void State_Eat_OnExit(void);
+	void State_Flee_OnEnter(void);
+	void State_Flee_OnTick(float f_DeltaTime);
+	void State_Flee_OnExit(void);
 
 	void State_Attack_OnEnter(void);
 	void State_Attack_OnTick(float f_DeltaTime);
 	void State_Attack_OnExit(void);
-
-	float Happiness = 0.0f;
 
 
 public:
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* myMesh;
 
-	void SetHappiness(float happy);
-	
 
-
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 	float time_elapsed = 0.0f;
+	float spawntime;
 	FVector targetLocation;
 	FVector position;
+
 	void SetRandomTarget();
 	void Wandering(float speed, float DeltaTime);
 	void SpawnChild();
-	float GetHappiness();
+	void Flee();
+
+	void DealDMG(AAnimal* Animal);
+
+	Hider_States GetCurrState() { return m_StateMachine->GetCurrentState(); }
+	void SetCurrState(Hider_States state) { m_StateMachine->ChangeState(state); }
 	
-
-
-	Gatherer_States GetCurrState() { return m_StateMachine->GetCurrentState(); }
-	void SetCurrState(Gatherer_States state) { m_StateMachine->ChangeState(state); }
-
-	void CauseDMG(AAnimal* hunter);
-
+	
 };

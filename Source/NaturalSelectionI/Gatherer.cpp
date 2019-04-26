@@ -30,9 +30,10 @@ AGatherer::AGatherer() {
 	myMesh->SetStaticMesh(myStaticMesh.Object);
 
 	// Set the basic property for Gatherer
+	// mid health and defense
 	SetDmg(20.0f);
 	SetSpeed(400.0f);
-	SetHealth(100.0f);
+	SetHealth(300.0f);
 	SetRandomTarget();
 
 
@@ -244,9 +245,17 @@ void AGatherer::State_Attack_OnTick(float f_DeltaTime)
 		}
 		if (HunterList.size() > 0) {
 			if (HunterList[0]->GetHealth() > 0) {
-				CauseDMG(HunterList[0]);			
+				time_elapsed += f_DeltaTime;
+				if (time_elapsed >= 1.0f) {
+					CauseDMG(HunterList[0]);
+					time_elapsed = 0;
+				}
 			}
 		
+		}
+		else
+		{
+			m_StateMachine->ChangeState(WANDER_STATE);
 		}
 	}
 }

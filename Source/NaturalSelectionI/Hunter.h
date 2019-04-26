@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Animal.h"
 #include "Gatherer.h"
+#include "Hider.h"
 #include "StateMachine.h"
 #include "Hunter.generated.h"
 
@@ -58,6 +59,7 @@ public:
 
 
 
+	float time_elapsed = 0.0f;
 	FVector targetLocation;
 	FVector position;
 	int Kills;

@@ -1,11 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Hunter.h"
-#include "Engine/GameEngine.h"
 #include <vector>
-#include <ctime>
-#include "Engine/World.h"
-#include "TimerManager.h"
+#include "Engine/GameEngine.h"
 #include "Components/InputComponent.h"
 #include "ConstructorHelpers.h"
 #include "Components/StaticMeshComponent.h"
@@ -26,8 +23,9 @@ AHunter::AHunter() {
 	myMesh = Cast<UStaticMeshComponent>(RootComponent);
 	myMesh->SetStaticMesh(myStaticMesh.Object);
 
+
 	Kills = 0;
-	SetDmg(50.0f);
+	SetDmg(100.0f);
 	SetSpeed(700.0f);
 	SetHealth(100.0f);
 	SetRandomTarget();
@@ -47,10 +45,6 @@ void AHunter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	m_StateMachine->Tick(DeltaTime);
 
-
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("HP: %f"), GetHealth()));
-
-
 	if (this->Kills >= 2) {
 		SpawnChild();
 	}
@@ -58,6 +52,7 @@ void AHunter::Tick(float DeltaTime)
 	if (this->GetHealth() <= 0) {
 		Destroy();	
 	}
+	
 }
 
 void AHunter::State_Wander_OnEnter(void)
@@ -79,6 +74,7 @@ void AHunter::State_Wander_OnTick(float f_DeltaTime)
 	if (isHit) {
 		for (auto& Hit : OutHits) {
 			// when any hit is found to be a AGatherer, set the flag to true and break, if no food is found, flag will remain false.
+			
 			if (AGatherer* Gatherer = Cast<AGatherer>(Hit.GetActor())) {
 				changeFlag = true;
 				break;			
@@ -86,8 +82,18 @@ void AHunter::State_Wander_OnTick(float f_DeltaTime)
 		}	
 	}
 
+	if (isHit) {
+		for (auto& Hit : OutHits) {
+			// when any hit is found to be a AGatherer, set the flag to true and break, if no food is found, flag will remain false.
+
+			if (AHider* Hider = Cast<AHider>(Hit.GetActor())) {
+				changeFlag = true;
+				break;
+			}
+		}
+	}
+
 	if (changeFlag == true) {
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("Going to eat")));
 		m_StateMachine->ChangeState(CHASE_STATE);
 	}
 }
@@ -109,13 +115,15 @@ void AHunter::State_Chase_OnTick(float f_DeltaTime)
 	FCollisionShape Sphere = FCollisionShape::MakeSphere(500.0f);
 	bool isHit = GetWorld()->SweepMultiByChannel(OutHits, Location, Location, FQuat::Identity, ECC_WorldStatic, Sphere);
 	if (isHit) {
-		std::vector<AAnimal*> PreyList;
+		std::vector<AActor*> PreyList;
 		for (auto& Hit : OutHits) {
-			if (AGatherer* Gatherer = Cast<AGatherer>(Hit.GetActor())) {
-				PreyList.push_back(Gatherer);
-			}		
+			if (Hit.GetActor()->IsA(AGatherer::StaticClass()) || (Hit.GetActor()->IsA(AHider::StaticClass()))) {
+				PreyList.push_back(Hit.GetActor());
+			}
 		}
 		preyNum = PreyList.size();
+
+
 		if (preyNum > 0) {
 			PreyLocation = PreyList[0]->GetActorLocation();
 			SetActorLocation(FMath::VInterpConstantTo(this->GetActorLocation(), PreyLocation, f_DeltaTime, GetSpeed()));
@@ -143,7 +151,6 @@ void AHunter::State_Attack_OnTick(float f_DeltaTime)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Attacking")));
 
-
 	int preyNum;
 	TArray<FHitResult> OutHits;
 	FVector Location = GetActorLocation();
@@ -151,7 +158,7 @@ void AHunter::State_Attack_OnTick(float f_DeltaTime)
 	bool isHit = GetWorld()->SweepMultiByChannel(OutHits, Location, Location, FQuat::Identity, ECC_WorldStatic, Sphere);
 
 	if (isHit) {
-		std::vector<AAnimal*> PreyList;
+		std::vector<AGatherer*> PreyList;
 		for (auto& Hit : OutHits) {
 			if (AGatherer* Gatherer = Cast<AGatherer>(Hit.GetActor())) {
 				PreyList.push_back(Gatherer);
@@ -160,14 +167,57 @@ void AHunter::State_Attack_OnTick(float f_DeltaTime)
 		preyNum = PreyList.size();
 		if (preyNum > 0) {
 			if (PreyList[0]->GetHealth() > 0) {	
-				this->DealDMG(PreyList[0]);
+
+				time_elapsed += f_DeltaTime;
+
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("time: %f"), time_elapsed));
+				if (time_elapsed >= 1.0f) {
+					this->DealDMG(PreyList[0]);
+					time_elapsed = 0;
+				}
 				if (PreyList[0]->GetHealth() <= 0) {
 					this->Kills += 1;
 					m_StateMachine->ChangeState(EAT_STATE);
 				}
 			}	
 		}
+		else {
+			m_StateMachine->ChangeState(WANDER_STATE);
+		
+		}
 	}
+	if (isHit) {
+		std::vector<AHider*> PreyList;
+		for (auto& Hit : OutHits) {
+			if (AHider* Hider = Cast<AHider>(Hit.GetActor())) {
+				PreyList.push_back(Hider);
+			}
+		}
+		preyNum = PreyList.size();
+		if (preyNum > 0) {
+			if (PreyList[0]->GetHealth() > 0) {
+
+				time_elapsed += f_DeltaTime;
+
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("time: %f"), time_elapsed));
+				if (time_elapsed >= 1.0f) {
+					this->DealDMG(PreyList[0]);
+					time_elapsed = 0;
+				}
+				if (PreyList[0]->GetHealth() <= 0) {
+					this->Kills += 1;
+					m_StateMachine->ChangeState(EAT_STATE);
+				}
+			}
+		}
+		else {
+			m_StateMachine->ChangeState(WANDER_STATE);
+
+		}
+	}
+
+
+
 }
 
 void AHunter::State_Attack_OnExit(void)
@@ -216,10 +266,6 @@ void AHunter::SpawnChild()
 	AHunter* Child = GetWorld()->SpawnActor<AHunter>(GetClass(), BirthLocation, FRotator::ZeroRotator);
 	this->Kills = 0;
 	
-}
-
-void AHunter::Chase()
-{
 }
 
 void AHunter::DealDMG(AAnimal* Animal)

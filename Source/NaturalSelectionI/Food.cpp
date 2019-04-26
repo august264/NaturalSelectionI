@@ -30,6 +30,8 @@ AFood::AFood()
 void AFood::BeginPlay()
 {
 	Super::BeginPlay();
+
+	
 	
 }
 
@@ -55,6 +57,7 @@ void AFood::OnPlayerEnterPickupBox(UPrimitiveComponent * OverlappedComp, AActor 
 
 		// Add 20 happiness to the Gatherer
 		aOtherActor->SetHappiness(20);
+		aOtherActor->SetHealth(aOtherActor->GetHealth() + 10.0f);
 		Destroy();
 		
 
