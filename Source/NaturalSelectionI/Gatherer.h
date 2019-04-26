@@ -50,8 +50,6 @@ private:
 	void State_Attack_OnTick(float f_DeltaTime);
 	void State_Attack_OnExit(void);
 
-	float m_timeElapse = 0.0f;
-
 	float Happiness = 0.0f;
 
 

@@ -85,7 +85,6 @@ void AGatherer::Wandering(float speed, float DeltaTime)
 // Spawn an actor
 void AGatherer::SpawnChild()
 {
-
 	FVector BirthLocation = GetActorLocation() + FVector(-150.0, -60.0f, 200.0f);
 
 	AGatherer* Child = GetWorld()->SpawnActor<AGatherer>(GetClass(), BirthLocation, FRotator::ZeroRotator);
